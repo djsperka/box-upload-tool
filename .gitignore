@@ -1,3 +1,13 @@
 test-flask/pyvenv.cfg
 test-flask/Lib/
 test-flask/Scripts/
+test/
+testsrc/
+testdst/
+*.tar
+*.MP4
+*.mp4
+.pydevproject
+.project
+.settings/
+**/__pycache__/**
