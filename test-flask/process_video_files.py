@@ -9,40 +9,46 @@ from argparse import ArgumentParser
 import pathlib
 import ffmpeg
 from pprint import pprint
-import datetime
+from datetime import datetime
+
 #Nfrom datetime import fromisoformat, now
 
 def get_creation_date(gpv):
     '''
     Use the video stream from first video file to get creation date.
-    
+
     This method assumes that the metadata has tags, and one of the tags is 'creation_time', 
     and that time is in UTC iso format. 
     
+    Returns creation date as a datetime object (or None if not found in metadata)
+
     :param gpv:GPVideo object
     '''
-    
+
     dt = None
     try:    
-        meta = ffmpeg.probe(gpv.filenames()[0])
+        meta = ffmpeg.probe(gpv.filenames[0])
         gen = (stream for stream in meta['streams'] if stream['codec_type'] == 'video')
         video_stream_meta = next(gen)
-        d = isoformat(video_stream_meta['tags']['creation_time'].replace('Z', ''))
+        #pprint(video_stream_meta)
+        d = datetime.isoformat(video_stream_meta['tags']['creation_time'].replace('Z', ''))
     except:
         print('Error getting creation date from video stream')
-        dt = now()        
+        dt = None        
     return dt
 def concatenate_video_files(gpv, text_overlay_string, output_file):
     input_list=list()
     for f in gpv.filenames:
         input_list.append(ffmpeg.input(f))
-    (
-        ffmpeg
-        .concat(*input_list)
-        .drawtext(text=text_overlay_string, font='Cambria', fontsize=48, fontcolor='white', box=1, boxcolor='black', x=10, y='h-text_h-10')
-        .output(output_file)
-        .run()
-    )
+    print("Contactenating files:")
+    pprint(input_list)
+    # (
+    #     ffmpeg
+    #     .concat(*input_list)
+    #     .drawtext(text=text_overlay_string, font='Cambria', fontsize=48, fontcolor='white', box=1, boxcolor='black', x=10, y='h-text_h-10')
+    #     .output(output_file)
+    #     .run()
+    # )
     
 
 if __name__ == '__main__':    

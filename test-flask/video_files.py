@@ -20,6 +20,7 @@ class GPVideo:
         return "%s: %s" % (self.video_number, self.filenames)
     def add_video(self, filename):
         self.filenames.append(filename)
+
 class GPVideoFolder:
     def __init__(self, folder):
         self.path = pathlib.Path(folder)
