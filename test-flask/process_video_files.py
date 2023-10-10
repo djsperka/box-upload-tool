@@ -34,7 +34,7 @@ def get_creation_date(gpv):
         dt = datetime.fromisoformat(video_stream_meta['tags']['creation_time'].replace('Z', ''))
     except Exception as e:
         print(e)
-        print('Error getting creation date from video stream')
+        print('Error getting creation date from video stream for GPVideo: ', str(gpv))
         dt = None        
     return dt
     
