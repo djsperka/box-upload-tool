@@ -13,9 +13,12 @@ import shutil
 # GPVideo should just hold the full path filenames. 
 
 class GPVideo:
-    def __init__(self, videonumber, filenames = list()):
+    def __init__(self, videonumber, filenames=None):
         self.video_number = videonumber
-        self.filenames = filenames
+        if not filenames:
+            self.filenames = list()
+        else:
+            self.filenames = filenames
     def __lt__(self, num):
         return self.video_number < num
     def __str__(self):
@@ -29,7 +32,6 @@ class GPVideoFolder:
         if not base_folder.is_dir():
             raise RuntimeError("base folder %s not found!" % (folder))
         self.vdict = dict()
-
         if not d:
             # if no dict provided, then this should be a folder containing videos 
             # as copied from the camera's SD card. 
@@ -49,9 +51,8 @@ class GPVideoFolder:
                         movie_seq = m.groups()[0]
                         if movie_id not in self.vdict:
                             self.vdict[movie_id] = GPVideo(movie_id)
-                        self.vdict[movie_id].add_video(str(self.path.joinpath(entry.name)))
+                        self.vdict[movie_id].add_video(str(base_folder.joinpath(entry.name)))
                         
-            # sort file lists
             for v in self.vdict.values():
                 v.filenames.sort()
         else:
