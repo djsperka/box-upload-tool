@@ -38,17 +38,29 @@ def get_creation_date(gpv):
         dt = None        
     return dt
     
+# Concatenate the list of GoPro videos in gplist. 
+# Assumes GoPro raw video is 1920x1080@60fps, and applies filters to 
+# - change resolution to 1024x576
+# - encodes video with h264 codec (GoPro codec consumes lots of space)
+# - draw date and video position on-screen
+# - reduce frame rate to 30fps
+# 
+# The output file is approximately 1-2% the combined size of the input list. 
+#
 def concatenate_video_files(gplist, text_overlay_string, output_file, dry_run=False):
     input_list=list()
     for f in gplist:
-        input_list.append(ffmpeg.input(f))
-    print("Contactenating files:")
+        input_list.append(ffmpeg.input(f).video)
+        input_list.append(ffmpeg.input(f).audio)
+    print("Contactenating segments:")
     pprint(input_list)
     new_video = (
         ffmpeg
-        .concat(*input_list)
-        .drawtext(text=text_overlay_string, escape_text=False, expansion='default', font='Cambria', fontsize=48, fontcolor='white', box=1, boxcolor='black', x=10, y='h-text_h-10')
-        .output(output_file, acodec='copy', vcodec='h264')
+        .concat(*input_list, v=1, a=1)
+        .filter('fps', fps=30) 
+        .filter('scale', '1024x576')
+        .drawtext(text=text_overlay_string, escape_text=False, expansion='default', font='Cambria', fontsize=24, fontcolor='white', box=1, boxcolor='black', x=10, y='h-text_h-10')
+        .output(output_file, vcodec='h264')
     )
 
     print(new_video.get_args())
