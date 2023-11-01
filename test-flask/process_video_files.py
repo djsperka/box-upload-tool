@@ -47,16 +47,20 @@ def get_creation_date(gpv):
 # 
 # The output file is approximately 1-2% the combined size of the input list. 
 #
-def concatenate_video_files(gplist, text_overlay_string, output_file, dry_run=False):
+def concatenate_video_files(gplist, text_overlay_string, output_file, dry_run=False, use_audio=True):
+    naudio=1
+    if not use_audio:
+        naudio=0
     input_list=list()
     for f in gplist:
         input_list.append(ffmpeg.input(f).video)
-        input_list.append(ffmpeg.input(f).audio)
+        if use_audio:
+            input_list.append(ffmpeg.input(f).audio)
     print("Contactenating segments:")
     pprint(input_list)
     new_video = (
         ffmpeg
-        .concat(*input_list, v=1, a=1)
+        .concat(*input_list, v=1, a=naudio)
         .filter('fps', fps=30) 
         .filter('scale', '1024x576')
         .drawtext(text=text_overlay_string, escape_text=False, expansion='default', font='Cambria', fontsize=24, fontcolor='white', box=1, boxcolor='black', x=10, y='h-text_h-10')
@@ -69,8 +73,18 @@ def concatenate_video_files(gplist, text_overlay_string, output_file, dry_run=Fa
     else:
         print(new_video.get_args())
 
+
+def reduce_video(input_filename, output_filename):
+    new_video = (
+        ffmpeg
+        .input(input_filename)
+        .filter('fps', fps=30)
+        .filter('scale', '1024x576')
+        .output(output_filename)
+        .run()
+    )
     
-def concatenate_gpvideos(gpv, mnum, trtype, output_folder, dry_run):
+def concatenate_gpvideos(gpv, mnum, trtype, output_folder, dry_run, use_audio=True):
     creation_date = get_creation_date(gpv)
     if not creation_date:
         raise RuntimeError('Cannot get creation date from first video')
@@ -85,11 +99,11 @@ def concatenate_gpvideos(gpv, mnum, trtype, output_folder, dry_run):
 
     # Form overlay text
     overlay_text='%s %s %s %s' % (str_creation_date, mnum, trtype, '%{pts:hms}')
-    concatenate_video_files(gpv.filenames, overlay_text, str(pathOutputFile), dry_run)
+    concatenate_video_files(gpv.filenames, overlay_text, str(pathOutputFile), dry_run, use_audio)
 
-def concatenate_all_gpvideos(gpvf, mnum, trtype, output_folder, dry_run):
+def concatenate_all_gpvideos(gpvf, mnum, trtype, output_folder, dry_run, use_audio=True):
     for gpv in gpvf.vdict.values():
-        concatenate_gpvideos(gpv, mnum, trtype, output_folder, dry_run)
+        concatenate_gpvideos(gpv, mnum, trtype, output_folder, dry_run, use_audio)
 
 if __name__ == '__main__':    
     parser = ArgumentParser()
@@ -100,6 +114,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", required=False, default=False, action='store_true', help="Verbose logging")
     parser.add_argument("-t", "--training_type", required=False, default='Training', help='Training type, short string will be in filename and overlayed on video')
     parser.add_argument("-m", "--monkey", required=False, default='00000', help='Monkey number, will be in filename and overlayed on video')
+    parser.add_argument("-q", "--no-audio", required=False, default=True, action='store_false', help='Do not pass audio - produce silent film')
     args = parser.parse_args()
     argsdict = vars(args)
 
@@ -113,8 +128,8 @@ if __name__ == '__main__':
             print("Video number %s not found in folder %s" % (argsdict['number'], argsdict['source_folder']))
             exit()
         else:
-            concatenate_gpvideos(gpvf.vdict[argsdict['number']], argsdict['monkey'], argsdict['training_type'], argsdict['output_folder'], argsdict['dry_run'])
+            concatenate_gpvideos(gpvf.vdict[argsdict['number']], argsdict['monkey'], argsdict['training_type'], argsdict['output_folder'], argsdict['dry_run'], argsdict['no_audio'])
     else:
-        concatenate_all_gpvideos(gpvf, argsdict['monkey'], argsdict['training_type'], argsdict['output_folder'], argsdict['dry_run'])
+        concatenate_all_gpvideos(gpvf, argsdict['monkey'], argsdict['training_type'], argsdict['output_folder'], argsdict['dry_run'], argsdict['no_audio'])
         
 
