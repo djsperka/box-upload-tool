@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     gpvf=GPVideoFolder(argsdict['source_folder'])
     if argsdict['verbose']:
-        for v in gpvf.all_videos():
+        for v in gpvf.all_gpvideos():
             print('vid num %s, files %s' % (v.video_number, v.filenames))
         
     if 'number' in argsdict and argsdict['number'] is not None:
